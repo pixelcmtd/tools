@@ -1,0 +1,7 @@
+#!/bin/bash
+source ~/.i3buntu/i3brc
+if command -v "$I3B_TERM" >/dev/null 2>&1; then
+        exec "$I3B_TERM" "$@"
+else
+        exec "i3-sensible-terminal" "$@"
+fi

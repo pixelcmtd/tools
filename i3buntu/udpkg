@@ -1,0 +1,5 @@
+#!/bin/sh
+FILE=/tmp/udpkg_$$.deb
+curl -Lo $FILE $1
+sudo dpkg -i $FILE
+rm -f $FILE
