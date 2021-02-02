@@ -3,3 +3,4 @@ sudo _update
 pip3 install -U $(pip3 freeze | cut -d= -f1)
 brew update
 brew upgrade
+port upgrade outdated

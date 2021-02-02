@@ -1,4 +1,3 @@
 #!/bin/sh
 pip3 install -U $(pip3 freeze | cut -d= -f1)
 gem update
-port upgrade outdated
