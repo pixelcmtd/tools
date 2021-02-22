@@ -86,7 +86,7 @@ void CC(char *args)
         #ifdef _WIN32
         "%s %s %s & link /OUT:%s.exe *.obj"
         #else
-        "%s %s -o %s -- %s"
+        "%s %s -o %s %s"
         #endif
         ; sprintf(cmd, cmdline, cc, cflags, output, args);
         system(cmd);
