@@ -28,6 +28,21 @@
 
 #define TRETURN fclose(f); free(bfr); return
 
+void run_command(int modifier, char *cmd)
+{
+        switch(modifier)
+        {
+                /*
+                 * TODO: implement a modifier that fails the build if
+                 *       the return code is non-zero
+                 */
+                case '%': run_builtin(cmd); break;
+                case '!': system(cmd); break;
+                case '#': break;
+                default : printf("Omitting command \"%s\" with unknown modifier %c.\n", cmd, modifier); break;
+        }
+}
+
 int run_target(char *smfile, char *target, char *argv0)
 {
         off_t size;
@@ -70,7 +85,9 @@ int run_target(char *smfile, char *target, char *argv0)
                         OPTIONSTART;
                         OPTION("root") { if(noroot())
                         {
-                                /* TODO: get rid of this somehow */
+                                /* TODO: get rid of this somehow
+                                 * TODO: also make sure that the deps arent run as root
+                                 */
                                 sprintf(bfr, "sudo %s %s", argv0, target);
                                 fclose(f);
                                 c = system(bfr);

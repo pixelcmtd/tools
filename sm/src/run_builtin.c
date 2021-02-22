@@ -51,9 +51,9 @@ char *cc = NULL, *cflags = NULL, *cppc = NULL, *cppflags = NULL;
 #define DEFAULT_CPPFLAGS "/c"
 #else
 #define DEFAULT_CC       "gcc"
-#define DEFAULT_CFLAGS   "-Wall -Wextra -pedantic -O2 -s"
+#define DEFAULT_CFLAGS   "-Wall -Wextra -pedantic -O3 -s"
 #define DEFAULT_CPPC     "g++"
-#define DEFAULT_CPPFLAGS "-Wall -Wextra -pedantic -std=c++2a -O2 -s"
+#define DEFAULT_CPPFLAGS "-Wall -Wextra -pedantic -std=c++2a -O3 -s"
 #endif
 
 void check_vars()
@@ -72,19 +72,23 @@ void CC(char *args)
         output = args;
         args += i + 1;
         cmd = (char *) malloc(strlen(cc) + strlen(args) +
-                              strlen(output) + strlen(cflags) + 16);
-        #ifdef _WIN32
+                              strlen(output) + strlen(cflags) + 32);
         /*
          * TODO: append dynamic extensions like so dll exe when needed
          * TODO: only using separate compiling and linking on windows
          *       is not the best idea, for stupid reasons some unix
          *       users might also want to do that (actually now that i
          *       am building an os i know good reasons to do that)
+         * TODO: support parallel builds (lol separate compiling and
+         *       linking)
          */
-        sprintf(cmd, "%s %s %s & link /OUT:%s.exe *.obj", cc, cflags, args, output);
+        const char *cmdline =
+        #ifdef _WIN32
+        "%s %s %s & link /OUT:%s.exe *.obj"
         #else
-        sprintf(cmd, "%s %s -o %s %s", cc, args, output, cflags);
+        "%s %s -o %s -- %s"
         #endif
+        ; sprintf(cmd, cmdline, cc, cflags, output, args);
         system(cmd);
         free(cmd);
 }
