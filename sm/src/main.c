@@ -4,7 +4,7 @@
 #include "args.h"
 
 #define PROGNAME "sm"
-#define VERSION  "0.0.16"
+#define VERSION  "0.0.17"
 #define YEARS    "2019-2021"
 #define AUTHORS  "Chris Häußler, chrissx Media"
 #define VERSIONINFO PROGNAME " " VERSION "\n(c) " YEARS " " AUTHORS

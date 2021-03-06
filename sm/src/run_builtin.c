@@ -50,9 +50,9 @@ char *cc = NULL, *cflags = NULL, *cppc = NULL, *cppflags = NULL;
 #define DEFAULT_CPPC     "cl"
 #define DEFAULT_CPPFLAGS "/c"
 #else
-#define DEFAULT_CC       "gcc"
+#define DEFAULT_CC       "cc"
 #define DEFAULT_CFLAGS   "-Wall -Wextra -pedantic -O3 -s"
-#define DEFAULT_CPPC     "g++"
+#define DEFAULT_CPPC     "c++"
 #define DEFAULT_CPPFLAGS "-Wall -Wextra -pedantic -std=c++2a -O3 -s"
 #endif
 
