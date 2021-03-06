@@ -1,0 +1,3 @@
+#!/bin/sh
+pacman -Syu
+pip3 install -U $(pip3 freeze | cut -d= -f1)
