@@ -1,7 +1,0 @@
-#!/bin/sh
-sudo _update
-pip3 install -U $(pip3 freeze | cut -d= -f1)
-tldr --update
-brew update
-brew upgrade
-port upgrade outdated

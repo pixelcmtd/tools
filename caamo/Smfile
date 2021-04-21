@@ -1,4 +1,0 @@
-install root {
-        !cp -f update /usr/local/bin/update
-        !cp -f _update /usr/local/bin/_update
-}

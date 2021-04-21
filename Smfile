@@ -4,4 +4,5 @@ all {
 
 install root (all) {
         !cp -f netsh /usr/local/bin/netsh
+        !cp -f update /usr/local/bin/update
 }
