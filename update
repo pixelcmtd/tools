@@ -1,3 +1,2 @@
 #!/bin/sh
 topgrade
-tldr --update
