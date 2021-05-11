@@ -1,14 +1,14 @@
 #pragma once
 #include <stdbool.h>
 
-/*
+/**
  * Searches for the file [Ss]mfile in the cwd and its parents
  *
  * Returns a malloced string if it found one, NULL otherwise.
  */
 char *find_smfile();
 
-/*
+/**
  * runs specified target
  * from smfile
  * using argv0 to call sudo when necessary
@@ -21,6 +21,12 @@ char *find_smfile();
  */
 int run_target(char *smfile, char *target, char *argv0);
 
-void run_command(int mod, char *cmd);
+/**
+ * runs the command cmd with the modifier mod
+ */
+int run_command(int mod, char *cmd);
 
-void run_builtin(char *);
+/**
+ * runs the specified builtin command
+ */
+int run_builtin(char *);

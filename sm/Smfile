@@ -1,32 +1,29 @@
-all
-{
+all {
         %CC sm src/*.c
 }
 
-cpp
-{
+cpp {
         %CPPC sm src/*.c
 }
 
-movcc
-{
-        # this will probably never work on windows
+movcc {
         %SET CC movcc
         %CC sm src/*.c
 }
 
-clean
-{
+clean {
         !rm -f sm
 }
 
-install root (all)
-{
+install root (all) {
         !cp -f sm /usr/local/bin/sm
 }
 
-debug
-{
+debug {
         %APPEND CFLAGS -Og -fsanitize=address -fsanitize=leak -fsanitize=undefined
         %CC sm src/*.c
+}
+
+format {
+        !clang-format -Werror -i --style=file --verbose src/*
 }

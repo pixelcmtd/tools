@@ -1,128 +1,95 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "../config.h"
 #include "sm.h"
 
-#define BUILTINSTART    if(0)
+#define BUILTINSTART if(0)
 #define BUILTIN(s) else if(!strcmp(builtin, s))
-/* TODO: "sm: " */
-#define BUILTINEND else printf("Omitting unrecognized builtin \"%s\".\n", builtin)
+#define BUILTINEND                                                  \
+        else fprintf(stderr,                                        \
+                     "sm: Omitting unrecognized builtin \"%s\".\n", \
+                     builtin)
 
-#define _SET(var, val) { \
-        if(var) free(var); \
-        var = (char *) malloc(strlen(val) + 2); \
-        strcpy(var, val); \
-}
-#define SETNAMESTART    if(0)
+#define _SET(var, val)                                 \
+        {                                              \
+                if(var) free(var);                     \
+                var = (char *)malloc(strlen(val) + 2); \
+                strcpy(var, val);                      \
+        }
+#define SETNAMESTART if(0)
 #define SETNAME(s, var) else if(!strcmp(name, s)) _SET(var, args)
-/* TODO: "sm: " */
-#define SETNAMEEND      else printf("Not setting unrecognized variable \"%s\".\n", name)
+#define SETNAMEEND                                                      \
+        else fprintf(stderr,                                            \
+                     "sm: Not setting unrecognized variable \"%s\".\n", \
+                     name)
 
-#define _APPEND(var, val) {\
-        if(!var) {\
-                var = (char *) malloc(strlen(val) + 2); \
-                strcpy(var, val); \
-        } else {\
-                char *tmpvar = (char *) malloc(strlen(val) + strlen(var) + 2);\
-                sprintf(tmpvar, "%s %s", var, val); \
-                free(var); \
-                var = tmpvar; \
-        }\
-}
-#define APPENDNAMESTART    if(0)
+#define _APPEND(var, val)                                                      \
+        {                                                                      \
+                if(!(var)) {                                                   \
+                        var = (char *)malloc(strlen(val) + 2);                 \
+                        strcpy(var, val);                                      \
+                } else {                                                       \
+                        char *tmpvar =                                         \
+                                (char *)malloc(strlen(val) + strlen(var) + 2); \
+                        sprintf(tmpvar, "%s %s", var, val);                    \
+                        free(var);                                             \
+                        var = tmpvar;                                          \
+                }                                                              \
+        }
+#define APPENDNAMESTART if(0)
 #define APPENDNAME(s, var) else if(!strcmp(name, s)) _APPEND(var, args)
-/* TODO: "sm: " */
-#define APPENDNAMEEND      else printf("Not appending to unrecognized variable \"%s\".\n", name)
+#define APPENDNAMEEND                                                        \
+        else fprintf(stderr,                                                 \
+                     "sm: Not appending to unrecognized variable \"%s\".\n", \
+                     name)
 
-int first_index_of(char *s, char c)
-{
-        int i;
-        for(i = 0; s[i]; i++)
-                if(s[i] == c)
-                        return i;
+int first_index_of(char *s, char c) {
+        for(int i = 0; s[i]; i++)
+                if(s[i] == c) return i;
         return -1;
 }
 
 char *cc = NULL, *cflags = NULL, *cppc = NULL, *cppflags = NULL;
-#ifdef _WIN32
-#define DEFAULT_CC       "cl"
-#define DEFAULT_CFLAGS   "/c"
-#define DEFAULT_CPPC     "cl"
-#define DEFAULT_CPPFLAGS "/c"
-#else
-#define DEFAULT_CC       "cc"
-#define DEFAULT_CFLAGS   "-Wall -Wextra -pedantic -O3 -s"
-#define DEFAULT_CPPC     "c++"
-#define DEFAULT_CPPFLAGS "-Wall -Wextra -pedantic -std=c++2a -O3 -s"
-#endif
 
-void check_vars()
-{
-        if(!cc)       _SET(cc,       DEFAULT_CC);
-        if(!cppc)     _SET(cppc,     DEFAULT_CPPC);
-        if(!cflags)   _SET(cflags,   DEFAULT_CFLAGS);
+void check_vars() {
+        if(!cc) _SET(cc, DEFAULT_CC);
+        if(!cppc) _SET(cppc, DEFAULT_CPPC);
+        if(!cflags) _SET(cflags, DEFAULT_CFLAGS);
         if(!cppflags) _SET(cppflags, DEFAULT_CPPFLAGS);
 }
 
-void CC(char *args)
-{
+int CC(char *args) {
         int i = first_index_of(args, ' ');
-        char *output, *cmd;
         args[i] = '\0';
-        output = args;
+        char *output = args;
         args += i + 1;
-        cmd = (char *) malloc(strlen(cc) + strlen(args) +
-                              strlen(output) + strlen(cflags) + 32);
-        /*
-         * TODO: append dynamic extensions like so dll exe when needed
-         * TODO: only using separate compiling and linking on windows
-         *       is not the best idea, for stupid reasons some unix
-         *       users might also want to do that (actually now that i
-         *       am building an os i know good reasons to do that)
-         * TODO: support parallel builds (lol separate compiling and
-         *       linking)
-         */
-        const char *cmdline =
-        #ifdef _WIN32
-        "%s %s %s & link /OUT:%s.exe *.obj"
-        #else
-        "%s %s -o %s %s"
-        #endif
-        ; sprintf(cmd, cmdline, cc, cflags, output, args);
-        system(cmd);
+        char *cmd = (char *)malloc(strlen(cc) + strlen(args) + strlen(output) +
+                                   strlen(cflags) + 32);
+        sprintf(cmd, "%s %s -o %s %s", cc, cflags, output, args);
+        int r = system(cmd);
         free(cmd);
+        return r;
 }
 
-/*
- * TODO: make this more generic
- */
-void CPPC(char *args)
-{
+int CPPC(char *args) {
         int i = first_index_of(args, ' ');
-        char *output, *cmd;
         args[i] = '\0';
-        output = args;
+        char *output = args;
         args += i + 1;
-        cmd = (char *) malloc(strlen(cppc) + strlen(args) +
-                              strlen(output) + strlen(cppflags) + 16);
-        #ifdef _WIN32
-        /*
-         * TODO: check if this actually works
-         */
-        sprintf(cmd, "%s %s %s & link /OUT:%s.exe *.obj", cppc, cppflags, args, output);
-        #else
+        char *cmd = (char *)malloc(strlen(cppc) + strlen(args) + strlen(output) +
+                                   strlen(cppflags) + 16);
         sprintf(cmd, "%s %s -o %s %s", cppc, args, output, cppflags);
-        #endif
-        system(cmd);
+        int r = system(cmd);
         free(cmd);
+        return r;
 }
 
-void SET(char *args)
-{
+void SET(char *args) {
         int i = first_index_of(args, ' ');
-        char *name;
         args[i] = '\0';
-        name = args;
+        char *name = args;
         args += i + 1;
         SETNAMESTART;
         SETNAME("CFLAGS", cflags)
@@ -132,12 +99,10 @@ void SET(char *args)
         SETNAMEEND;
 }
 
-void APPEND(char *args)
-{
+void APPEND(char *args) {
         int i = first_index_of(args, ' ');
-        char *name;
         args[i] = '\0';
-        name = args;
+        char *name = args;
         args += i + 1;
         APPENDNAMESTART;
         APPENDNAME("CFLAGS", cflags)
@@ -147,19 +112,18 @@ void APPEND(char *args)
         APPENDNAMEEND;
 }
 
-void run_builtin(char *cmd)
-{
-        int i;
-        char *builtin;
+int run_builtin(char *cmd) {
         check_vars();
-        i = first_index_of(cmd, ' ');
+        int i = first_index_of(cmd, ' ');
         cmd[i] = '\0';
-        builtin = cmd;
+        char *builtin = cmd;
         cmd += i + 1;
         BUILTINSTART;
-        BUILTIN("CC")     CC    (cmd);
-        BUILTIN("CPPC")   CPPC  (cmd);
-        BUILTIN("SET")    SET   (cmd);
+        BUILTIN("CC") return CC(cmd);
+        BUILTIN("CPPC") return CPPC(cmd);
+        BUILTIN("SET") SET(cmd);
         BUILTIN("APPEND") APPEND(cmd);
         BUILTINEND;
+        /* TODO: give more builtins errors */
+        return 0;
 }
