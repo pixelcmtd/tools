@@ -1,8 +1,4 @@
 cd
 git clone https://github.com/chrissxYT/tools.git
-cd tools/sm
-cc src/*.c -o _
-./_ install
-rm -f _
-cd ..
-sm install
+cd tools
+sh build_and_install
