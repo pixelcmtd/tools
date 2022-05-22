@@ -1,6 +1,0 @@
-install root {
-        !cp -f i3b-term /usr/local/bin/i3b-term
-        !cp -f i3b-browser /usr/local/bin/i3b-browser
-        !cp -f bookmark /usr/local/bin/bookmark
-        !cp -f todo /usr/local/bin/todo
-}

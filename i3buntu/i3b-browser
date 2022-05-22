@@ -1,7 +1,0 @@
-#!/bin/bash
-source ~/.i3buntu/i3brc
-if command -v "$I3B_BROWSER" >/dev/null 2>&1; then
-        exec "$I3B_BROWSER" "$@"
-else
-        exec "x-www-browser" "$@"
-fi
