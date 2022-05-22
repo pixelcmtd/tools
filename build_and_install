@@ -1,6 +1,6 @@
 cd sm
-cc src/*.c -o _
-./_ install
-rm -f _
+make
+sudo make install
 cd ..
-sm install
+make
+sudo make install

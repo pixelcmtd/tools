@@ -1,4 +1,4 @@
 cd
-git clone https://github.com/chrissxYT/tools.git
+git clone https://github.com/pixelcmtd/tools.git
 cd tools
 sh build_and_install

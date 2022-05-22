@@ -1,7 +1,0 @@
-all {
-        %CC netsh netsh.c
-}
-
-install root (all) {
-        !cp -f netsh /usr/local/bin/netsh
-}
