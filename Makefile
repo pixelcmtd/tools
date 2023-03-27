@@ -3,10 +3,13 @@ PREFIX ?= /usr/local
 
 all: netsh
 
-netsh: netsh.c
-	$(CC) $(CFLAGS) -o netsh netsh.c
+%: %.c
+	$(CC) $(CFLAGS) -o $@ $<
 
 install: netsh
 	cp -f netsh $(PREFIX)/bin/netsh
 
-.PHONY: all install
+clean:
+	rm -f netsh
+
+.PHONY: all install clean
