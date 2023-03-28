@@ -1,17 +1,18 @@
 #include <stdio.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
 #define NAME "netsh"
-#define YEARS "2019-2020"
-#define AUTHORS "Chris E. Häußler, chrissx Media"
-#define VERSION "1.6.5"
+#define VERSION "1.6.6"
+#define COPYRIGHT "(c) 2019-2023 Pixel Häußler, chrissx Media"
 
 #define HELP NAME" "VERSION"\n"\
-             "(c) "YEARS" "AUTHORS"\n"\
+             COPYRIGHT"\n"\
              "\n"\
-             "Usage: netsh [OPTIONS] [URL/repo] [OPTIONS] [URL/repo] ... \n"\
+             "Usage: netsh [OPTIONS] [URL]  ... \n"\
+             "Usage: netsh [OPTIONS] [REPO] ... \n"\
              "\n"\
              "  --\n"\
              "    Treat all remaining arguments as repos/URLs.\n"\
@@ -28,8 +29,8 @@
              "  -h, --help\n"\
              "    Print this screen.\n"\
 
-#define ARGSTART if(!strcmp(s, "--")) argsended = 1
-#define ARG(s, unix, gnu) else if(!argsended && (!strcmp(s, "-"unix) || !strcmp(s, "--"gnu)))
+#define ARGSTART if(!strcmp(s, "--") || argsended) argsended = 1
+#define ARG(s, unix, gnu) else if(!strcmp(s, "-"unix) || !strcmp(s, "--"gnu))
 
 #define url(s) (!strncmp((s), "http://", 7) || \
         !strncmp((s), "https://", 8) || !strncmp((s), "git://", 6) ||\
@@ -37,17 +38,18 @@
         !strncmp((s), "hg://", 5))
 
 #define clonecommand() sprintf(cmdbuf, \
-        "%s clone '%s' %s && cd %s && { %s; }; cd ..; rm -rf %s", \
+        "%s clone '%s' %s && cd %s && { %s; }", \
         scm, urlbuf, fd, fd, cmd, fd)
 #define elsecommand()  sprintf(cmdbuf, \
-        "curl -Lo '%s' '%s'; chmod +x '%s'&& ./%s; rm -f %s", \
-        fd, urlbuf, fd, fd, fd)
+        "curl -Lo '%s' '%s'; chmod +x '%s' && %s", \
+        fd, urlbuf, fd, fd)
 
 void rurl(char *u, char *bfr, int c, char *f) {
         if(url(u)) strcpy(bfr, u);
         else if(!strncmp(u, "bb://", 5) && c)
                 sprintf(bfr, "https://bitbucket.org/%s", u + 5);
         else sprintf(bfr, c ? "https://github.com/%s" :
+                        // TODO: am i dumb
                 "https://github.com/%s/raw/master/%s",
                 strncmp(u, "gh://", 5) ? u : u + 5, f);
 }
@@ -66,15 +68,16 @@ int main(int argc, char **argv) {
                 ARG(s, "v", "version") puts(VERSION);
                 ARG(s, "h", "help") puts(HELP);
                 else {
-                        char fd[16];
+                        char *fd = strdup("/tmp/netsh.XXXXXXXX");
                         char cmdbuf[strlen(s) + 512];
                         char urlbuf[strlen(s) + 512];
-                        sprintf(fd, ".netsh%4lx", time(0));
+                        // ik mktemp's deprecated and stuff, but it makes sense here
+                        mktemp(fd);
                         rurl(s, urlbuf, c, f);
                         if(c) clonecommand();
                         else   elsecommand();
                         if(system(cmdbuf))
-                                printf("system(\"%s\") failed.\n", cmdbuf);
+                                printf("system(\"%s\") failed, errno: %s\n", cmdbuf, strerror(errno));
                 }
         }
         return 0;
