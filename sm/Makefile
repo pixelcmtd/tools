@@ -1,14 +1,9 @@
 CC ?= cc
-CXX ?= c++
 CFLAGS ?= -Wall -Wextra -pedantic -O3
-CXXFLAGS ?= -Wall -Wextra -pedantic -std=c++2a -O3
 PREFIX ?= /usr/local
 
 all:
 	$(CC) $(CFLAGS) -o sm src/*.c
-
-cpp:
-	$(CXX) $(CXXFLAGS) -o sm src/*.c
 
 movcc:
 	movcc $(CFLAGS) -o sm src/*.c
@@ -25,4 +20,4 @@ debug:
 format:
 	clang-format -Werror -i --style=file --verbose src/*
 
-.PHONY: all cpp movcc clean install debug format
+.PHONY: all movcc clean install debug format
