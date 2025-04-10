@@ -12,14 +12,19 @@
                      "sm: Omitting unrecognized builtin \"%s\".\n", \
                      builtin)
 
-#define _SET(var, val)                                 \
+#define _set(var, val)                                 \
         {                                              \
                 if(var) free(var);                     \
                 var = (char *)malloc(strlen(val) + 2); \
                 strcpy(var, val);                      \
         }
+#define _init(var, env, def)                                     \
+        {                                                        \
+                char *envval = getenv(env);                      \
+                if(envval) _set(var, envval) else _set(var, def) \
+        }
 #define SETNAMESTART if(0)
-#define SETNAME(s, var) else if(!strcmp(name, s)) _SET(var, args)
+#define SETNAME(s, var) else if(!strcmp(name, s)) _set(var, args)
 #define SETNAMEEND                                                      \
         else fprintf(stderr,                                            \
                      "sm: Not setting unrecognized variable \"%s\".\n", \
@@ -54,10 +59,10 @@ int first_index_of(char *s, char c) {
 char *cc = NULL, *cflags = NULL, *cppc = NULL, *cppflags = NULL;
 
 void check_vars() {
-        if(!cc) _SET(cc, DEFAULT_CC);
-        if(!cppc) _SET(cppc, DEFAULT_CPPC);
-        if(!cflags) _SET(cflags, DEFAULT_CFLAGS);
-        if(!cppflags) _SET(cppflags, DEFAULT_CPPFLAGS);
+        if(!cc) _init(cc, "CC", DEFAULT_CC);
+        if(!cppc) _init(cppc, "CXX", DEFAULT_CPPC);
+        if(!cflags) _init(cflags, "CFLAGS", DEFAULT_CFLAGS);
+        if(!cppflags) _init(cppflags, "CXXFLAGS", DEFAULT_CPPFLAGS);
 }
 
 int CC(char *args) {
