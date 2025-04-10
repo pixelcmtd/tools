@@ -1,3 +1,5 @@
+#!/bin/sh
+set -uxe
 cd sm
 make
 sudo make install

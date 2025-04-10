@@ -13,7 +13,6 @@ curl -L https://github.com/pixelcmtd/tools/raw/master/bootstrap | sh
 - `curl`
 - `sh`
 - `cp`
-- `git`
 - `cc` (or a C compiler referred to in the environment variable `CC`)
 - `make`
 - `sudo`

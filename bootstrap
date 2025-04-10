@@ -1,4 +1,6 @@
-cd
-git clone https://github.com/pixelcmtd/tools.git
-cd tools
+#!/bin/sh
+set -uxe
+cd "$(mktemp -d)"
+curl -L https://github.com/pixelcmtd/tools/archive/refs/heads/master.tar.gz | tar xz
+cd tools-master
 sh build_and_install
