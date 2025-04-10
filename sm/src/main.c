@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
                 puts("*** No Smfile found. ***");
                 return 1;
         }
-        int res;
+        int res = 0;
         ARGSTART;
         ARG("v", "version") return puts(VERSIONINFO) < 0;
         ARG("h", "help") return !printf(HELP, *argv);
