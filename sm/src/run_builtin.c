@@ -5,12 +5,7 @@
 #include "../config.h"
 #include "sm.h"
 
-#define BUILTINSTART if(0)
-#define BUILTIN(s) else if(!strcmp(builtin, s))
-#define BUILTINEND                                                  \
-        else fprintf(stderr,                                        \
-                     "sm: Omitting unrecognized builtin \"%s\".\n", \
-                     builtin)
+char *cc = NULL, *cflags = NULL, *cppc = NULL, *cppflags = NULL;
 
 #define _set(var, val)                                 \
         {                                              \
@@ -29,6 +24,52 @@
         else fprintf(stderr,                                            \
                      "sm: Not setting unrecognized variable \"%s\".\n", \
                      name)
+
+void check_vars() {
+        if(!cc) _init(cc, "CC", DEFAULT_CC);
+        if(!cppc) _init(cppc, "CXX", DEFAULT_CPPC);
+        if(!cflags) _init(cflags, "CFLAGS", DEFAULT_CFLAGS);
+        if(!cppflags) _init(cppflags, "CXXFLAGS", DEFAULT_CPPFLAGS);
+}
+
+int CC(char *args) {
+        char *a = strchr(args, ' ');
+        *a = '\0';
+        char *output = args;
+        args = a + 1;
+        char *cmd = (char *)malloc(strlen(cc) + strlen(args) + strlen(output) +
+                                   strlen(cflags) + 32);
+        sprintf(cmd, "%s %s -o %s %s", cc, cflags, output, args);
+        int r = system(cmd);
+        free(cmd);
+        return r;
+}
+
+int CPPC(char *args) {
+        char *a = strchr(args, ' ');
+        *a = '\0';
+        char *output = args;
+        args = a + 1;
+        char *cmd = (char *)malloc(strlen(cppc) + strlen(args) + strlen(output) +
+                                   strlen(cppflags) + 16);
+        sprintf(cmd, "%s %s -o %s %s", cppc, args, output, cppflags);
+        int r = system(cmd);
+        free(cmd);
+        return r;
+}
+
+void SET(char *args) {
+        char *a = strchr(args, ' ');
+        *a = '\0';
+        char *name = args;
+        args = a + 1;
+        SETNAMESTART;
+        SETNAME("CFLAGS", cflags)
+        SETNAME("CC", cc)
+        SETNAME("CPPFLAGS", cppflags)
+        SETNAME("CPPC", cppc)
+        SETNAMEEND;
+}
 
 #define _APPEND(var, val)                                                      \
         {                                                                      \
@@ -50,65 +91,11 @@
                      "sm: Not appending to unrecognized variable \"%s\".\n", \
                      name)
 
-int first_index_of(char *s, char c) {
-        for(int i = 0; s[i]; i++)
-                if(s[i] == c) return i;
-        return -1;
-}
-
-char *cc = NULL, *cflags = NULL, *cppc = NULL, *cppflags = NULL;
-
-void check_vars() {
-        if(!cc) _init(cc, "CC", DEFAULT_CC);
-        if(!cppc) _init(cppc, "CXX", DEFAULT_CPPC);
-        if(!cflags) _init(cflags, "CFLAGS", DEFAULT_CFLAGS);
-        if(!cppflags) _init(cppflags, "CXXFLAGS", DEFAULT_CPPFLAGS);
-}
-
-int CC(char *args) {
-        int i = first_index_of(args, ' ');
-        args[i] = '\0';
-        char *output = args;
-        args += i + 1;
-        char *cmd = (char *)malloc(strlen(cc) + strlen(args) + strlen(output) +
-                                   strlen(cflags) + 32);
-        sprintf(cmd, "%s %s -o %s %s", cc, cflags, output, args);
-        int r = system(cmd);
-        free(cmd);
-        return r;
-}
-
-int CPPC(char *args) {
-        int i = first_index_of(args, ' ');
-        args[i] = '\0';
-        char *output = args;
-        args += i + 1;
-        char *cmd = (char *)malloc(strlen(cppc) + strlen(args) + strlen(output) +
-                                   strlen(cppflags) + 16);
-        sprintf(cmd, "%s %s -o %s %s", cppc, args, output, cppflags);
-        int r = system(cmd);
-        free(cmd);
-        return r;
-}
-
-void SET(char *args) {
-        int i = first_index_of(args, ' ');
-        args[i] = '\0';
-        char *name = args;
-        args += i + 1;
-        SETNAMESTART;
-        SETNAME("CFLAGS", cflags)
-        SETNAME("CC", cc)
-        SETNAME("CPPFLAGS", cppflags)
-        SETNAME("CPPC", cppc)
-        SETNAMEEND;
-}
-
 void APPEND(char *args) {
-        int i = first_index_of(args, ' ');
-        args[i] = '\0';
+        char *a = strchr(args, ' ');
+        *a = '\0';
         char *name = args;
-        args += i + 1;
+        args = a + 1;
         APPENDNAMESTART;
         APPENDNAME("CFLAGS", cflags)
         APPENDNAME("CC", cc)
@@ -117,12 +104,19 @@ void APPEND(char *args) {
         APPENDNAMEEND;
 }
 
+#define BUILTINSTART if(0)
+#define BUILTIN(s) else if(!strcmp(builtin, s))
+#define BUILTINEND                                                  \
+        else fprintf(stderr,                                        \
+                     "sm: Omitting unrecognized builtin \"%s\".\n", \
+                     builtin)
+
 int run_builtin(char *cmd) {
         check_vars();
-        int i = first_index_of(cmd, ' ');
-        cmd[i] = '\0';
+        char *a = strchr(cmd, ' ');
+        *a = '\0';
         char *builtin = cmd;
-        cmd += i + 1;
+        cmd = a + 1;
         BUILTINSTART;
         BUILTIN("CC") return CC(cmd);
         BUILTIN("CPPC") return CPPC(cmd);
