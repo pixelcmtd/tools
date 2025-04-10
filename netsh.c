@@ -5,8 +5,8 @@
 #include <time.h>
 
 #define NAME "netsh"
-#define VERSION "1.6.6"
-#define COPYRIGHT "(c) 2019-2023 Pixel Häußler, chrissx Media"
+#define VERSION "1.6.7"
+#define COPYRIGHT "(c) 2019-2025 Pixel Häußler, chrissx Media"
 
 #define HELP NAME" "VERSION"\n"\
              COPYRIGHT"\n"\
@@ -29,20 +29,12 @@
              "  -h, --help\n"\
              "    Print this screen.\n"\
 
-#define ARGSTART if(!strcmp(s, "--") || argsended) argsended = 1
-#define ARG(s, unix, gnu) else if(!strcmp(s, "-"unix) || !strcmp(s, "--"gnu))
+#define fail(...) { fprintf(stderr, __VA_ARGS__); return 1; }
 
 #define url(s) (!strncmp((s), "http://", 7) || \
         !strncmp((s), "https://", 8) || !strncmp((s), "git://", 6) ||\
         !strncmp((s), "svn://", 6) || !strncmp((s), "cvs://", 6) || \
         !strncmp((s), "hg://", 5))
-
-#define clonecommand() sprintf(cmdbuf, \
-        "%s clone '%s' %s && cd %s && { %s; }", \
-        scm, urlbuf, fd, fd, cmd, fd)
-#define elsecommand()  sprintf(cmdbuf, \
-        "curl -Lo '%s' '%s'; chmod +x '%s' && %s", \
-        fd, urlbuf, fd, fd)
 
 void rurl(char *u, char *bfr, int c, char *f) {
         if(url(u)) strcpy(bfr, u);
@@ -54,13 +46,15 @@ void rurl(char *u, char *bfr, int c, char *f) {
                 strncmp(u, "gh://", 5) ? u : u + 5, f);
 }
 
+#define ARG(s, unix, gnu) else if(!strcmp(s, "-"unix) || !strcmp(s, "--"gnu))
+
 int main(int argc, char **argv) {
         int c = 0, argsended = 0;
         char *cmd = "./netsh", *f = "netsh", *scm = "git";
         argv++;
         while(argc-- > 1) {
                 char *s = *argv++;
-                ARGSTART;
+                if(!strcmp(s, "--") || argsended) argsended = 1;
                 ARG(s, "c", "clone") c = !c;
                 ARG(s, "f", "file") f = *argv++;
                 ARG(s, "C", "command") cmd = *argv++;
@@ -69,15 +63,19 @@ int main(int argc, char **argv) {
                 ARG(s, "h", "help") puts(HELP);
                 else {
                         char *fd = strdup("/tmp/netsh.XXXXXXXX");
+                        if(!fd) fail("strdup: %s\n", strerror(errno));
                         char cmdbuf[strlen(s) + 512];
                         char urlbuf[strlen(s) + 512];
                         // ik mktemp's deprecated and stuff, but it makes sense here
                         mktemp(fd);
                         rurl(s, urlbuf, c, f);
-                        if(c) clonecommand();
-                        else   elsecommand();
-                        if(system(cmdbuf))
-                                printf("system(\"%s\") failed, errno: %s\n", cmdbuf, strerror(errno));
+                        if(c) sprintf(cmdbuf,
+                                      "%s clone '%s' '%s' && cd '%s' && { %s; }",
+                                      scm, urlbuf, fd, fd, cmd);
+                        else  sprintf(cmdbuf,
+                                      "curl -Lo '%s' '%s'; chmod +x '%s' && %s",
+                                      fd, urlbuf, fd, fd);
+                        if(system(cmdbuf)) fail("system(\"%s\"): %s\n", cmdbuf, strerror(errno));
                 }
         }
         return 0;
