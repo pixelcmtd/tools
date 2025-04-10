@@ -5,9 +5,9 @@
 #include "sm.h"
 
 #define PROGNAME "sm"
-#define VERSION "0.1.0"
-#define YEARS "2019-2021"
-#define AUTHORS "Chris Häußler, chrissx Media"
+#define VERSION "0.2.0"
+#define YEARS "2019-2025"
+#define AUTHORS "Pixel Häußler, chrissx Media"
 #define VERSIONINFO PROGNAME " " VERSION "\n(c) " YEARS " " AUTHORS
 
 #define HELP                                                          \
